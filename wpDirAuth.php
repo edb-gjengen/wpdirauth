@@ -441,44 +441,40 @@ else {
 
             
         }
-        else {
-            if($boolUseGroups == 1){
-                //the user is authenticated, but we want to make sure they are a member of the groups given
-                /**
-                * We need to get the DN's for each Authentication Group CN that was given to us. 
-                */
-                $aryAuthGroupsDN = array();
-                $aryAuthGroups = explode(',',$strAuthGroups);
-                $aryAttribs = array('distinguishedname');
-                foreach($aryAuthGroups as $strAuthGroup){
-                    $strAuthGroup = 'cn='.$strAuthGroup;
-                    $rscLDAPSearch = ldap_search($connection,$baseDn,$strAuthGroup,$aryAttribs);
-                    $arySearchResults = ldap_get_entries($connection,$rscLDAPSearch);
-                    wpDirAuthPrintDebug($arySearchResults,'search results for ' . $strAuthGroup);
-                    if(isset($arySearchResults[0]['dn'])){
-                        $aryAuthGroupsDN[] = $arySearchResults[0]['dn'];    
-                    }    
-                }
-                
-                if(count($aryAuthGroupsDN) == 0){
-                    return new WP_Error('no_auth_groups_found',$errorTitle.__('No Authentication Groups found based on given group CN'));
-                }                
-                               
-                
-                $strFilterQuery = '(&'.$filterQuery.'(|';
-                foreach($aryAuthGroupsDN as $strAuthGroupDN){
-                    $strFilterQuery .= '(memberOf='.$strAuthGroupDN.')';
-                }
-                $strFilterQuery .= '))';
-                if(($rscLDAPSearchGroupMember = ldap_search($connection,$baseDn,$strFilterQuery)) !== false){
-                    $arySearchResultsMember = ldap_get_entries($connection,$rscLDAPSearchGroupMember);
-                    if($arySearchResultsMember['count'] !== 1){
-                        return new WP_Error('not_member_of_auth_group',$errorTitle
-                            . __('User authenticated but is not a member of an Authentication Group(s)'));
-                    }
-                }
-                
-            }            
+	else {
+		if($boolUseGroups == 1){
+			//the user is authenticated, but we want to make sure they are a member of the groups given
+			/**
+			 * We need to get the DN's for each Authentication Group CN that was given to us. 
+			 */
+			$aryAuthGroupsDN = array();
+			$aryAuthGroups = explode(',',$strAuthGroups);
+			$aryAttribs = array('posixGroup');
+			$isMember = false;
+			foreach($aryAuthGroups as $strAuthGroup){
+				$strAuthGroup = 'cn='.$strAuthGroup;
+				$rscLDAPSearch = ldap_search($connection,$baseDn,$strAuthGroup,$aryAttribs);
+				$arySearchResults = ldap_get_entries($connection,$rscLDAPSearch);
+				wpDirAuthPrintDebug($arySearchResults,'search results for ' . $strAuthGroup);
+				if( isset($arySearchResults[0]['memberuid'])) {
+					wpDirAuthPrintDebug($arySearchResults[0]['memberuid'], "memberUid");
+					if ( in_array($username, $arySearchResults[0]['memberuid']) ){
+						$isMember = true;
+					} 
+				}
+
+				if(isset($arySearchResults[0]['dn'])){
+					$aryAuthGroupsDN[] = $arySearchResults[0]['dn'];    
+				}    
+			}
+			if(count($aryAuthGroupsDN) == 0){
+				return new WP_Error('no_auth_groups_found',$errorTitle.__('No Authentication Groups found based on given group CN'));
+			}		
+
+			if( $isMember === false ){
+				return new WP_Error('not member of auth grou', __('Could not log you in because you are not a member of the specified group.'));
+			}
+		}
             
             
             /**
