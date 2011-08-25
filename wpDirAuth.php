@@ -104,6 +104,8 @@ define('WPDIRAUTH_LDAP_RETURN_KEYS',serialize(array('sn', 'givenname', 'mail')))
 
 define('WPDIRAUTH_EMAIL_NEWUSER_NOTIFY','You have been added to the site %s as %s %s. You may login to the site using your institution\'s %s (%s) and password at the following address: %s');
 
+/* Debugging */
+define('WPDIRAUTH_DEBUG', false);
 
 if (function_exists('wp_authenticate') || function_exists('wp_setcookie') || !function_exists('ldap_connect')) {
 /**
@@ -1362,7 +1364,9 @@ ________EOS;
     * @param string $strMsg
     */
     function wpDirAuthPrintDebug($mxdVar,$strMsg){
-        echo PHP_EOL,'<!-- ',$strMsg,': ',PHP_EOL,var_export($mxdVar,true),PHP_EOL,'-->',PHP_EOL;
+        if (WPDIRAUTH_DEBUG) {
+            echo PHP_EOL,'<!-- ',$strMsg,': ',PHP_EOL,var_export($mxdVar,true),PHP_EOL,'-->',PHP_EOL;
+        }
     }
     
     /**
