@@ -493,7 +493,9 @@ else {
                 // Modify for posixGroup lookup
                 
                 // (&(memberUid=nikolark)(cn=dns-aktiv))
-                $strFilterQuery = '(&'.$filterQuery.'(|';
+                // TODO configurable memberUid and cn
+                $memberFilterquery = "(memberUid=$username)";
+                $strFilterQuery = '(&'.$memberfilterQuery.'(|';
                 foreach($aryAuthGroupsDN as $strAuthGroupDN){
                     $strFilterQuery .= '(cn='.$strAuthGroupDN.')';
                 }
