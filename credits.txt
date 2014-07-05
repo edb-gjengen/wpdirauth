@@ -1,18 +1,18 @@
 === wpDirAuth Credits ===
 
 wpDirAuth is made possible by the following contributors:
-
-  Stephane Daury
-    Current maintainer
-    Montreal, QC, Canada
-    http://stephane.daury.org/
-
+  
   Paul Gilzow
     Current maintainer
     Columbia, MO, USA
     http://profiles.wordpress.org/users/gilzow/
+  
+  Stephane Daury
+    Original author
+    Montreal, QC, Canada
+    http://stephane.daury.org/
 
-  Todd Beverly
+ Todd Beverly
     wpDirAuth QA and patch contributor
     Rochester, NY, USA
     See http://wordpress.org/support/topic/129814
