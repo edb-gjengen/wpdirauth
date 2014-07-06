@@ -473,6 +473,9 @@ else {
                 /**
                 * We need to get the DN's for each Authentication Group CN that was given to us. 
                 */
+
+                // 2014-07-06 Nikolai R Kristiansen <nikolaik@gmail.com>
+                // Modified for posixGroup lookup
                 $aryAuthGroupsDN = array();
                 $aryAuthGroups = explode(',',$strAuthGroups);
                 $aryAttribs = array('distinguishedname');
@@ -481,23 +484,20 @@ else {
                     $rscLDAPSearch = ldap_search($connection,$baseDn,$strAuthGroup,$aryAttribs);
                     $arySearchResults = ldap_get_entries($connection,$rscLDAPSearch);
                     if(isset($arySearchResults[0]['dn'])){
-                        $aryAuthGroupsDN[] = $arySearchResults[0]['dn'];    
+                        $aryAuthGroupsDN[] = $strAuthGroup;
                     }    
                 }
                 
                 if(count($aryAuthGroupsDN) == 0){
                     return new WP_Error('no_auth_groups_found',$errorTitle.__('No Authentication Groups found based on given group CN'));
                 }                
-                               
-                // 2014-07-06 Nikolai R Kristiansen <nikolaik@gmail.com>
-                // Modify for posixGroup lookup
                 
                 // (&(memberUid=nikolark)(cn=dns-aktiv))
                 // TODO configurable memberUid and cn
-                $memberFilterquery = "(memberUid=$username)";
-                $strFilterQuery = '(&'.$memberfilterQuery.'(|';
+                $memberFilterQuery = "(memberUid=$username)";
+                $strFilterQuery = '(&'.$memberFilterQuery.'(|';
                 foreach($aryAuthGroupsDN as $strAuthGroupDN){
-                    $strFilterQuery .= '(cn='.$strAuthGroupDN.')';
+                    $strFilterQuery .= "($strAuthGroupDN)";
                 }
                 $strFilterQuery .= '))';
                 if(($rscLDAPSearchGroupMember = ldap_search($connection,$baseDn,$strFilterQuery)) !== false){
