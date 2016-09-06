@@ -56,7 +56,7 @@
 
 /*
 PLUGIN META INFO FOR WORDPRESS LISTINGS
-Plugin Name: wpDirAuth
+Plugin Name: wpDirAuth-PosixGroup
 Plugin URI:  http://wpdirauth.gilzow.com/
 Description: WordPress Directory Authentication (LDAP/LDAPS).
              Works with most LDAP enabled directory services, such as OpenLDAP,
@@ -481,6 +481,10 @@ else {
                 /**
                  * We need to get the DN's for each Authentication Group CN that was given to us.
                  */
+
+
+                // 2014-07-06 Nikolai R Kristiansen <nikolaik@gmail.com>
+                // Modified for posixGroup lookup
                 $aryAuthGroupsDN = array();
                 $aryAuthGroups = explode(',',$strAuthGroups);
                 $aryAttribs = array('distinguishedname');
@@ -489,7 +493,7 @@ else {
                     $rscLDAPSearch = ldap_search($connection,$baseDn,$strAuthGroup,$aryAttribs);
                     $arySearchResults = ldap_get_entries($connection,$rscLDAPSearch);
                     if(isset($arySearchResults[0]['dn'])){
-                        $aryAuthGroupsDN[] = $arySearchResults[0]['dn'];
+                        $aryAuthGroupsDN[] = $strAuthGroup;
                     }
                 }
 
@@ -497,10 +501,12 @@ else {
                     return new WP_Error('no_auth_groups_found',$errorTitle.__('No Authentication Groups found based on given group CN'));
                 }
 
-
-                $strFilterQuery = '(&'.$filterQuery.'(|';
+                // (&(memberUid=nikolark)(cn=dns-aktiv))
+                // TODO configurable memberUid and cn
+                $memberFilterQuery = "(memberUid=".$username.")";
+                $strFilterQuery = '(&'.$memberFilterQuery.'(|';
                 foreach($aryAuthGroupsDN as $strAuthGroupDN){
-                    $strFilterQuery .= '(memberOf='.$strAuthGroupDN.')';
+                    $strFilterQuery .= "(".$strAuthGroupDN.")";
                 }
                 $strFilterQuery .= '))';
                 if(($rscLDAPSearchGroupMember = ldap_search($connection,$baseDn,$strFilterQuery)) !== false){
