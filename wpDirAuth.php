@@ -56,7 +56,7 @@
 
 /*
 PLUGIN META INFO FOR WORDPRESS LISTINGS
-Plugin Name: wpDirAuth
+Plugin Name: wpDirAuth-PosixGroup
 Plugin URI:  http://wpdirauth.gilzow.com/
 Description: WordPress Directory Authentication (LDAP/LDAPS).
              Works with most LDAP enabled directory services, such as OpenLDAP,
@@ -557,7 +557,7 @@ else {
                     $rscLDAPSearch = ldap_search($connection,$baseDn,$strAuthGroup,$aryAttribs);
                     $arySearchResults = ldap_get_entries($connection,$rscLDAPSearch);
                     if(isset($arySearchResults[0]['dn'])){
-                        $aryAuthGroupsDN[] = $arySearchResults[0]['dn'];
+                        $aryAuthGroupsDN[] = $strAuthGroup;
                     }
                 }
 
@@ -565,10 +565,10 @@ else {
                     return new WP_Error('no_auth_groups_found',$errorTitle.__('No Authentication Groups found based on given group CN'));
                 }
 
-
-                $strFilterQuery = '(&'.$filterQuery.'(|';
-                foreach($aryAuthGroupsDN as $strAuthGroupDN){
-                    $strFilterQuery .= '(memberOf='.$strAuthGroupDN.')';
+		$memberFilterQuery = "(memberUid=".$username.")";
+		$strFilterQuery = '(&'.$memberFilterQuery.'(|';
+		foreach($aryAuthGroupsDN as $strAuthGroupDN){
+			$strFilterQuery .= "(".$strAuthGroupDN.")";
                 }
                 $strFilterQuery .= '))';
                 if(($rscLDAPSearchGroupMember = ldap_search($connection,$baseDn,$strFilterQuery)) !== false){
